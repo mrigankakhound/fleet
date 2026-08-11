@@ -104,7 +104,7 @@ export default function VehicleList() {
               {pagination.total} vehicle{pagination.total !== 1 ? 's' : ''} · {search ? `"${search}"` : 'All records'}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="page-header-actions">
             <button
               className="btn-fleet btn-ghost"
               onClick={handleExport}
@@ -116,7 +116,7 @@ export default function VehicleList() {
               ) : (
                 <i className="bi bi-file-earmark-excel"></i>
               )}
-              Export Excel
+              Export
             </button>
             <button
               className="btn-fleet btn-primary-fleet"
@@ -130,7 +130,7 @@ export default function VehicleList() {
         </div>
 
         {/* Filter Bar */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="filter-bar" style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="tab-nav" style={{ flex: 'none' }}>
             {STATUS_FILTERS.map((f) => (
               <button
@@ -191,7 +191,7 @@ export default function VehicleList() {
               </button>
 
               <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>
-                {pagination.total} total vehicles
+                {pagination.total} total
               </span>
             </div>
           )}

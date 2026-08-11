@@ -6,6 +6,7 @@ const ReminderLog = require('../models/ReminderLog');
 const User = require('../models/User');
 const telegramService = require('../services/telegramService');
 const emailService = require('../services/emailService');
+const { restartCron } = require('../services/cronService');
 
 // GET /api/settings
 const getSettings = async (req, res, next) => {
@@ -78,6 +79,15 @@ const updateSettings = async (req, res, next) => {
       details: 'Settings updated',
       performedBy: req.user?.username || 'admin',
     });
+
+    // Restart cron so any schedule change takes effect immediately
+    if (updates.reminderCronTime) {
+      try {
+        await restartCron();
+      } catch (cronErr) {
+        console.error('[Settings] Failed to restart cron after settings update:', cronErr.message);
+      }
+    }
 
     res.json({ success: true, message: 'Settings saved.', data: settings });
   } catch (error) {

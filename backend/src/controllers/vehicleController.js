@@ -29,23 +29,26 @@ const getVehicles = async (req, res, next) => {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
     const skip = (pageNum - 1) * limitNum;
 
-    let matchQuery = { isActive: true };
+    // Collect filters separately and combine with $and to prevent $or conflicts
+    const conditions = [{ isActive: true }];
 
-    // Search
+    // Search filter
     if (search.trim()) {
       const searchRegex = new RegExp(search.trim(), 'i');
       const vehicleIdNum = parseInt(search);
       const idQuery = !isNaN(vehicleIdNum) ? [{ vehicleId: vehicleIdNum }] : [];
-      matchQuery.$or = [
-        { vehicleNumber: searchRegex },
-        { ownerName: searchRegex },
-        { driverName: searchRegex },
-        { whatsappNumber: searchRegex },
-        ...idQuery,
-      ];
+      conditions.push({
+        $or: [
+          { vehicleNumber: searchRegex },
+          { ownerName: searchRegex },
+          { driverName: searchRegex },
+          { whatsappNumber: searchRegex },
+          ...idQuery,
+        ],
+      });
     }
 
-    // Status filter
+    // Status filter (independent of search)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const in7Days = new Date(today);
@@ -54,24 +57,33 @@ const getVehicles = async (req, res, next) => {
     in30Days.setDate(in30Days.getDate() + 30);
 
     if (status === 'expired') {
-      matchQuery.$or = [
-        { insuranceExpiry: { $lt: today } },
-        { pollutionExpiry: { $lt: today } },
-        { gpsExpiry: { $lt: today } },
-      ];
+      conditions.push({
+        $or: [
+          { insuranceExpiry: { $lt: today } },
+          { pollutionExpiry: { $lt: today } },
+          { gpsExpiry: { $lt: today } },
+        ],
+      });
     } else if (status === 'expiring7') {
-      matchQuery.$or = [
-        { insuranceExpiry: { $gte: today, $lte: in7Days } },
-        { pollutionExpiry: { $gte: today, $lte: in7Days } },
-        { gpsExpiry: { $gte: today, $lte: in7Days } },
-      ];
+      conditions.push({
+        $or: [
+          { insuranceExpiry: { $gte: today, $lte: in7Days } },
+          { pollutionExpiry: { $gte: today, $lte: in7Days } },
+          { gpsExpiry: { $gte: today, $lte: in7Days } },
+        ],
+      });
     } else if (status === 'expiring30') {
-      matchQuery.$or = [
-        { insuranceExpiry: { $gte: today, $lte: in30Days } },
-        { pollutionExpiry: { $gte: today, $lte: in30Days } },
-        { gpsExpiry: { $gte: today, $lte: in30Days } },
-      ];
+      conditions.push({
+        $or: [
+          { insuranceExpiry: { $gte: today, $lte: in30Days } },
+          { pollutionExpiry: { $gte: today, $lte: in30Days } },
+          { gpsExpiry: { $gte: today, $lte: in30Days } },
+        ],
+      });
     }
+
+    // Build final query — use $and when multiple conditions exist
+    const matchQuery = conditions.length === 1 ? conditions[0] : { $and: conditions };
 
     const sortObj = {};
     sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;

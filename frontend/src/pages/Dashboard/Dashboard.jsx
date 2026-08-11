@@ -35,12 +35,13 @@ export default function Dashboard() {
         <div className="page-header">
           <div>
             <h1 className="page-title">
-              <span style={{ color: 'var(--primary)' }}>Dashboard</span> </h1>
+              <span style={{ color: 'var(--primary)' }}>Dashboard</span>
+            </h1>
             <p className="page-subtitle">
               {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div>
             <span style={{
               background: 'rgba(34,197,94,0.1)',
               border: '1px solid rgba(34,197,94,0.2)',
@@ -49,7 +50,8 @@ export default function Dashboard() {
               fontWeight: 600,
               padding: '5px 12px',
               borderRadius: 20,
-              display: 'flex', alignItems: 'center', gap: 5,
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              whiteSpace: 'nowrap',
             }}>
               <span style={{ width: 6, height: 6, background: '#22c55e', borderRadius: '50%', animation: 'glowPulse 2s infinite' }}></span>
               System Online
@@ -67,23 +69,23 @@ export default function Dashboard() {
 
         {/* Middle row: Today Widget + Calendar + Pie */}
         <div className="row g-3 mb-3">
-          <div className="col-md-3">
+          <div className="col-md-3 col-12">
             <TodayWidget data={todayData} loading={todayLoading} />
           </div>
-          <div className="col-md-5">
+          <div className="col-md-5 col-12">
             <CalendarWidget />
           </div>
-          <div className="col-md-4">
+          <div className="col-md-4 col-12">
             <PieChart />
           </div>
         </div>
 
         {/* Bottom row: Monthly Chart + Activity */}
         <div className="row g-3">
-          <div className="col-md-7">
+          <div className="col-md-7 col-12">
             <MonthlyChart />
           </div>
-          <div className="col-md-5">
+          <div className="col-md-5 col-12">
             <ActivityFeed />
           </div>
         </div>

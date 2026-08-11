@@ -181,39 +181,54 @@ const buildEmailHtml = ({ vehicleNumber, ownerName, docTypeLabel, daysLeft, expi
 };
 
 const runReminders = async () => {
-  console.log(`\n[Reminder Engine] Starting run at ${new Date().toISOString()}`);
+  const runStart = new Date();
+  console.log(`\n[Reminder Engine] ══════════════════════════════════════════`);
+  console.log(`[Reminder Engine] Starting run at  : ${runStart.toISOString()}`);
+  console.log(`[Reminder Engine] Local time        : ${runStart.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST`);
 
   try {
     const settings = await Settings.findOne({ key: 'main' });
     if (!settings) {
-      console.warn('[Reminder Engine] No settings found, using defaults.');
+      console.warn('[Reminder Engine] ⚠️  No settings document found in database. Using defaults.');
     }
 
-    // ─── Check that at least one notification provider is configured ───────
+    // ─── Check notification providers ────────────────────────────────────────
     const telegramEnabled = settings?.telegramEnabled === true;
     const emailEnabled = settings?.emailEnabled === true;
-
     const hasTelegram = telegramEnabled && settings?.telegramChatId?.trim();
     const hasEmail = emailEnabled && settings?.managerEmail?.trim();
 
+    console.log(`[Reminder Engine] Telegram enabled  : ${telegramEnabled} | chatId set: ${!!(settings?.telegramChatId?.trim())}`);
+    console.log(`[Reminder Engine] Email enabled      : ${emailEnabled} | manager email set: ${!!(settings?.managerEmail?.trim())}`);
+
     if (!hasTelegram && !hasEmail) {
       console.warn(
-        '[Reminder Engine] No notification provider configured. ' +
-        'Go to Settings → Notifications and enable Telegram or Email. Aborting run.'
+        '[Reminder Engine] ❌ No notification provider configured.\n' +
+        '   → Go to Settings → Notifications and enable Telegram or Email.\n' +
+        '   → Aborted.'
       );
       return { totalSent: 0, totalSkipped: 0, totalFailed: 0, aborted: true };
     }
 
     const reminderDays = settings?.reminderDays || [30, 15, 7, 4, 2, 1, 0];
+    console.log(`[Reminder Engine] Reminder thresholds: [${reminderDays.join(', ')}] days`);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const vehicles = await Vehicle.find({ isActive: true }).lean();
+    console.log(`[Reminder Engine] Active vehicles    : ${vehicles.length}`);
+
+    if (vehicles.length === 0) {
+      console.log('[Reminder Engine] No active vehicles — nothing to check.');
+      console.log(`[Reminder Engine] ══════════════════════════════════════════\n`);
+      return { totalSent: 0, totalSkipped: 0, totalFailed: 0 };
+    }
 
     let totalSent = 0;
     let totalSkipped = 0;
     let totalFailed = 0;
+    let totalChecked = 0;
 
     const docFields = [
       { field: 'insuranceExpiry', type: 'insurance' },
@@ -226,6 +241,8 @@ const runReminders = async () => {
         const expiryDate = vehicle[field];
         if (!expiryDate) continue;
 
+        totalChecked++;
+
         const expiry = new Date(expiryDate);
         expiry.setHours(0, 0, 0, 0);
 
@@ -234,6 +251,8 @@ const runReminders = async () => {
         // Check if this daysLeft matches any reminder threshold
         const matchedDay = reminderDays.find((d) => d === daysLeft);
         if (matchedDay === undefined) continue;
+
+        console.log(`[Reminder Engine] ✅ Match: ${vehicle.vehicleNumber} | ${type} | ${daysLeft} days left | expiry: ${expiryDate}`);
 
         // Deduplication: check if reminder already sent today for this vehicle+doc
         const startOfToday = new Date(today);
@@ -245,6 +264,7 @@ const runReminders = async () => {
         });
 
         if (existingLog) {
+          console.log(`[Reminder Engine]    ↳ Already sent today (log: ${existingLog._id}) — skipping.`);
           totalSkipped++;
           continue;
         }
@@ -266,11 +286,10 @@ const runReminders = async () => {
 
         let logStatus = 'sent';
         let errorMessage = '';
-        // Store manager contact for logging
         const notificationTarget = settings?.telegramChatId || settings?.managerEmail || 'N/A';
 
         try {
-          // Send through all enabled providers — never to vehicle owner
+          console.log(`[Reminder Engine]    ↳ Sending notifications...`);
           const notifResult = await notificationService.send({
             settings,
             telegramText,
@@ -282,6 +301,11 @@ const runReminders = async () => {
           if (notifResult.anySuccess) {
             logStatus = 'sent';
             totalSent++;
+            const channels = [
+              notifResult.telegram?.sent ? 'Telegram ✅' : notifResult.telegram ? 'Telegram ❌' : null,
+              notifResult.email?.sent ? 'Email ✅' : notifResult.email ? 'Email ❌' : null,
+            ].filter(Boolean);
+            console.log(`[Reminder Engine]    ↳ Sent via: ${channels.join(', ')}`);
           } else {
             logStatus = 'failed';
             const errs = [
@@ -290,22 +314,23 @@ const runReminders = async () => {
             ].filter(Boolean).join('; ');
             errorMessage = errs || 'All providers failed.';
             totalFailed++;
+            console.error(`[Reminder Engine]    ↳ ❌ All providers failed: ${errorMessage}`);
           }
         } catch (err) {
           logStatus = 'failed';
           errorMessage = err.message;
           totalFailed++;
-          console.error(`[Reminder Engine] Failed for ${vehicle.vehicleNumber} ${type}: ${err.message}`);
+          console.error(`[Reminder Engine]    ↳ ❌ Exception for ${vehicle.vehicleNumber} ${type}: ${err.message}`);
         }
 
-        // Save log — record manager contact as the recipient (not owner's number)
+        // Save log
         await ReminderLog.create({
           vehicleId: vehicle._id,
           vehicleNumber: vehicle.vehicleNumber,
           documentType: type,
           reminderDays: matchedDay,
           expiryDate,
-          whatsappNumber: notificationTarget, // repurposed: stores manager's chat ID or email
+          whatsappNumber: notificationTarget,
           messageContent: telegramText,
           status: logStatus,
           errorMessage,
@@ -323,10 +348,19 @@ const runReminders = async () => {
       }
     }
 
-    console.log(`[Reminder Engine] Done. Sent: ${totalSent}, Skipped: ${totalSkipped}, Failed: ${totalFailed}`);
+    const duration = ((Date.now() - runStart) / 1000).toFixed(1);
+    console.log(`[Reminder Engine] ─────────────────────────────────────────`);
+    console.log(`[Reminder Engine] Docs checked   : ${totalChecked}`);
+    console.log(`[Reminder Engine] Sent           : ${totalSent}`);
+    console.log(`[Reminder Engine] Skipped (dedup): ${totalSkipped}`);
+    console.log(`[Reminder Engine] Failed         : ${totalFailed}`);
+    console.log(`[Reminder Engine] Duration       : ${duration}s`);
+    console.log(`[Reminder Engine] ══════════════════════════════════════════\n`);
+
     return { totalSent, totalSkipped, totalFailed };
   } catch (error) {
-    console.error(`[Reminder Engine] Fatal error: ${error.message}`);
+    console.error(`[Reminder Engine] ❌ Fatal error: ${error.message}`);
+    console.log(`[Reminder Engine] ══════════════════════════════════════════\n`);
     throw error;
   }
 };

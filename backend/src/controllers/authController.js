@@ -26,25 +26,26 @@ const login = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
 
-    // Temporarily add passwordHash for comparison
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
 
-    user.lastLogin = new Date();
-    await user.save();
+    // Use updateOne to avoid triggering the pre-save hook (bcrypt re-hash) and reduce write overhead
+    const loginTime = new Date();
+    await User.updateOne({ _id: user._id }, { $set: { lastLogin: loginTime } });
 
     const token = generateToken(user._id, user.username);
 
     // Set httpOnly cookie
     res.cookie('fleet_token', token, cookieOptions);
 
-    await ActivityLog.create({
+    // Fire-and-forget activity log (don't await — keeps response fast)
+    ActivityLog.create({
       action: 'admin_login',
       details: `Admin ${user.username} logged in`,
       performedBy: user.username,
-    });
+    }).catch((err) => console.error('[Auth] Failed to write activity log:', err.message));
 
     res.json({
       success: true,
@@ -56,7 +57,7 @@ const login = async (req, res, next) => {
           username: user.username,
           displayName: user.displayName,
           role: user.role,
-          lastLogin: user.lastLogin,
+          lastLogin: loginTime,
           mustChangePassword: user.mustChangePassword,
         },
       },

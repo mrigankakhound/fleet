@@ -59,9 +59,18 @@ if (env.nodeEnv !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Health check
+// Health check — includes timezone info for debugging scheduler issues
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', app: 'Fleet Reminder Pro', time: new Date().toISOString() });
+  const now = new Date();
+  res.json({
+    status: 'ok',
+    app: 'Fleet Reminder Pro',
+    serverTime: now.toISOString(),
+    serverTimeIST: now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+    timezone: process.env.TIMEZONE || 'Asia/Kolkata',
+    nodeEnv: env.nodeEnv,
+    uptimeSeconds: Math.floor(process.uptime()),
+  });
 });
 
 // API Routes

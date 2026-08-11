@@ -22,7 +22,8 @@ const sendMessage = async ({ botToken, chatId, text, retries = 3 }) => {
   const payload = {
     chat_id: chatId,
     text,
-    parse_mode: 'HTML',
+    // No parse_mode — messages are plain text. Using HTML mode on unescaped
+    // text would fail if vehicle numbers contain < or > characters.
   };
 
   let lastError;

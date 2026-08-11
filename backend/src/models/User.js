@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
 // Mongoose 9: async pre-hooks must NOT call next() — just return/throw
 userSchema.pre('save', async function () {
   if (!this.isModified('passwordHash')) return;
-  const salt = await bcrypt.genSalt(12);
+  const salt = await bcrypt.genSalt(10); // 10 rounds: secure + ~4x faster than 12
   this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
 });
 

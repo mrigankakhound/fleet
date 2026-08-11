@@ -7,6 +7,11 @@ const breadcrumbMap = {
   '/settings': [{ label: 'Settings' }],
 }
 
+const handleHamburger = () => {
+  // Dispatch custom event — Sidebar.jsx listens for it
+  window.dispatchEvent(new Event('toggle-sidebar'))
+}
+
 export default function TopNav({ onSearchChange, searchValue }) {
   const { user } = useAuth()
   const location = useLocation()
@@ -15,7 +20,17 @@ export default function TopNav({ onSearchChange, searchValue }) {
 
   return (
     <header className="topbar">
-      {/* Breadcrumb */}
+      {/* Hamburger — mobile only */}
+      <button
+        className="mobile-menu-btn"
+        onClick={handleHamburger}
+        aria-label="Open navigation menu"
+        title="Menu"
+      >
+        <i className="bi bi-list" />
+      </button>
+
+      {/* Breadcrumb — hidden on mobile via CSS */}
       <div className="breadcrumb-nav" style={{ minWidth: 120 }}>
         <Link to="/dashboard" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
           <i className="bi bi-house"></i>
@@ -50,14 +65,15 @@ export default function TopNav({ onSearchChange, searchValue }) {
 
       {/* Actions */}
       <div className="topbar-actions">
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+        {/* Date — hidden on mobile via CSS */}
+        <div className="topbar-date" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
         <div className="topbar-user">
           <div className="topbar-avatar">
             {user?.displayName?.[0] || 'A'}
           </div>
-          <div style={{ lineHeight: 1.2 }}>
+          <div className="topbar-user-name" style={{ lineHeight: 1.2 }}>
             <div style={{ fontSize: 12, fontWeight: 600 }}>{user?.displayName || 'Admin'}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Administrator</div>
           </div>

@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../contexts/AuthContext'
 
+const isDev = import.meta.env.DEV
+
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -32,7 +34,7 @@ export default function Login() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 20,
+      padding: '20px 16px',
     }}>
       {/* Background Grid */}
       <div style={{
@@ -44,7 +46,7 @@ export default function Login() {
 
       <div style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1 }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{
             width: 64, height: 64,
             background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
@@ -53,7 +55,7 @@ export default function Login() {
             fontSize: 28, margin: '0 auto 16px',
             boxShadow: '0 0 30px rgba(59,130,246,0.4)',
           }}>🚛</div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
             Fleet Reminder Pro
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
@@ -62,15 +64,18 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div style={{
-          background: 'rgba(30,41,59,0.8)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid var(--border)',
-          borderRadius: 20,
-          padding: 32,
-          boxShadow: 'var(--shadow-lg)',
-        }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24, color: 'var(--text-primary)' }}>
+        <div
+          className="login-card"
+          style={{
+            background: 'rgba(30,41,59,0.8)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid var(--border)',
+            borderRadius: 20,
+            padding: 28,
+            boxShadow: 'var(--shadow-lg)',
+          }}
+        >
+          <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 22, color: 'var(--text-primary)' }}>
             Sign In to Your Account
           </h2>
 
@@ -90,6 +95,7 @@ export default function Login() {
                   style={{ paddingLeft: 38 }}
                   placeholder="Enter username"
                   autoComplete="username"
+                  autoCapitalize="none"
                   {...register('username', { required: 'Username is required' })}
                 />
               </div>
@@ -108,7 +114,7 @@ export default function Login() {
                   id="login-password"
                   type={showPass ? 'text' : 'password'}
                   className="form-control-fleet"
-                  style={{ paddingLeft: 38, paddingRight: 38 }}
+                  style={{ paddingLeft: 38, paddingRight: 42 }}
                   placeholder="Enter password"
                   autoComplete="current-password"
                   {...register('password', { required: 'Password is required' })}
@@ -116,10 +122,11 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPass((v) => !v)}
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
                   style={{
                     position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
                     background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
-                    padding: 4, fontSize: 15,
+                    padding: 6, fontSize: 15, display: 'flex', alignItems: 'center',
                   }}
                 >
                   <i className={`bi ${showPass ? 'bi-eye-slash' : 'bi-eye'}`}></i>
@@ -149,20 +156,22 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Default credentials hint */}
-          <div style={{
-            marginTop: 20,
-            padding: '10px 14px',
-            background: 'rgba(59,130,246,0.08)',
-            border: '1px solid rgba(59,130,246,0.2)',
-            borderRadius: 8,
-            fontSize: 12,
-            color: 'var(--text-muted)',
-            textAlign: 'center',
-          }}>
-            <i className="bi bi-info-circle me-1"></i>
-            Default: <strong style={{ color: 'var(--text-secondary)' }}>admin</strong> / <strong style={{ color: 'var(--text-secondary)' }}>Admin@1234</strong>
-          </div>
+          {/* Default credentials — development only (NEVER shown in production) */}
+          {isDev && (
+            <div style={{
+              marginTop: 20,
+              padding: '10px 14px',
+              background: 'rgba(59,130,246,0.08)',
+              border: '1px solid rgba(59,130,246,0.2)',
+              borderRadius: 8,
+              fontSize: 12,
+              color: 'var(--text-muted)',
+              textAlign: 'center',
+            }}>
+              <i className="bi bi-info-circle me-1"></i>
+              Dev: <strong style={{ color: 'var(--text-secondary)' }}>admin</strong> / <strong style={{ color: 'var(--text-secondary)' }}>Admin@1234</strong>
+            </div>
+          )}
         </div>
 
         <p style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--text-muted)' }}>

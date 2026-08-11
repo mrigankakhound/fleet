@@ -1160,3 +1160,262 @@ body {
   0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); }
   50% { box-shadow: 0 0 20px rgba(239,68,68,0.8); }
 }
+
+/* =====================================================
+   Mobile Navigation System
+   ===================================================== */
+
+/* Hamburger button — only visible on mobile */
+.mobile-menu-btn {
+  display: none;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn:hover { color: var(--text-primary); border-color: var(--primary); }
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  animation: fadeIn 0.2s ease;
+}
+
+/* =====================================================
+   Full Mobile Responsive Breakpoints
+   ===================================================== */
+
+/* ── Large mobile & tablet (≤ 768px) ─────────────────── */
+@media (max-width: 768px) {
+
+  /* Show hamburger */
+  .mobile-menu-btn { display: flex; }
+
+  /* Sidebar slides in from left over content */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1100;
+    width: min(280px, 85vw);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.mobile-open {
+    display: block;
+  }
+
+  /* Main content fills full width */
+  .main-content { margin-left: 0; }
+
+  /* Drawer full-width on mobile */
+  .drawer { width: 100%; border-left: none; }
+
+  /* Topbar responsive */
+  .topbar { padding: 0 14px; gap: 10px; }
+  .breadcrumb-nav { display: none; }
+  .topbar-search { max-width: none; }
+
+  /* Page content padding */
+  .page-content { padding: 16px; }
+
+  /* Page header stacks on mobile */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .page-header > div:last-child {
+    width: 100%;
+  }
+
+  .page-title { font-size: 18px; }
+
+  /* Stats cards — 2 columns on tablet */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .stat-card-value { font-size: 22px; }
+  .stat-card-icon { width: 44px; height: 44px; font-size: 18px; }
+
+  /* Modal responsive */
+  .modal-overlay { padding: 16px; align-items: flex-end; }
+  .modal-box {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Drawer body padding */
+  .drawer-body { padding: 14px; }
+  .drawer-header { padding: 14px 16px; }
+
+  /* Pagination compact */
+  .pagination-fleet { padding: 12px 14px; gap: 3px; }
+  .page-btn { width: 28px; height: 28px; font-size: 12px; }
+
+  /* Tab nav wraps */
+  .tab-nav { flex-wrap: wrap; gap: 3px; }
+  .tab-btn { padding: 7px 10px; font-size: 12px; white-space: nowrap; }
+
+  /* Topbar user — hide name text */
+  .topbar-user-name { display: none; }
+
+  /* Topbar date — hide on small screens */
+  .topbar-date { display: none; }
+
+  /* Warning banner compact */
+  .warning-banner { padding: 10px 14px; gap: 8px; }
+
+  /* Card body padding reduction */
+  .card-body { padding: 14px; }
+  .card-header { padding: 12px 14px; }
+
+  /* Info row compact */
+  .info-row { padding: 8px 0; }
+
+  /* FAB position */
+  .fab { bottom: 20px; right: 16px; }
+}
+
+/* ── Small mobile (≤ 480px) ──────────────────────────── */
+@media (max-width: 480px) {
+
+  .page-content { padding: 12px; }
+
+  /* Stats cards — 1 column on very small */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Stat card horizontal layout stays — just smaller */
+  .stat-card { padding: 14px 16px; }
+  .stat-card-value { font-size: 20px; }
+
+  /* Filter area stacks */
+  .filter-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-bar .tab-nav { width: 100%; }
+
+  /* Page header buttons full width on tiny screens */
+  .page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .page-header-actions .btn-fleet {
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+  }
+
+  /* Topbar minimal */
+  .topbar { padding: 0 12px; height: 56px; gap: 8px; }
+  .topbar-search input { font-size: 13px; }
+
+  /* Table horizontal scroll hint */
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Drawer compact */
+  .drawer-header { padding: 12px; }
+  .drawer-body { padding: 12px; }
+
+  /* Modal even more compact */
+  .modal-box { padding: 16px; }
+
+  /* Today widget row compact */
+  .today-widget-row { padding: 10px 0; }
+  .today-count { font-size: 18px; }
+
+  /* Calendar smaller text */
+  .calendar-day { font-size: 11px; }
+
+  /* Activity item compact */
+  .activity-item { gap: 8px; padding: 10px 0; }
+  .activity-icon { width: 30px; height: 30px; font-size: 12px; }
+  .activity-title { font-size: 12px; }
+
+  /* Tab nav scrollable on very small */
+  .tab-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+
+  /* Vehicle doc cards in drawer stack better */
+  .doc-card-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* ── Extra small (≤ 360px) ───────────────────────────── */
+@media (max-width: 360px) {
+
+  body { font-size: 13px; }
+
+  .page-title { font-size: 16px; }
+  .page-content { padding: 10px; }
+
+  .stat-card-value { font-size: 18px; }
+  .stat-card-icon { width: 40px; height: 40px; font-size: 16px; }
+
+  .btn-fleet { padding: 7px 12px; font-size: 12px; }
+  .btn-sm-fleet { padding: 4px 8px; font-size: 11px; }
+
+  .modal-box { padding: 14px; border-radius: var(--radius-md); }
+  .drawer-header h2 { font-size: 14px !important; }
+
+  .form-control-fleet { padding: 8px 12px; font-size: 13px; }
+
+  /* Login card */
+  .login-card { padding: 20px 16px; }
+}
+
+/* ── Landscape phone fix ─────────────────────────────── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .modal-overlay { align-items: center; }
+  .modal-box { max-height: 85vh; }
+  .drawer { max-height: 100vh; overflow-y: auto; }
+}
+
+/* ── Desktop: ensure sidebar is always visible ───────── */
+@media (min-width: 769px) {
+  .sidebar {
+    transform: translateX(0) !important;
+  }
+  .mobile-menu-btn { display: none !important; }
+  .sidebar-overlay { display: none !important; }
+}
